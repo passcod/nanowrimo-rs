@@ -5,7 +5,10 @@ use crate::ErrorData;
 
 /// A common error type returned from Nano API operations
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum Error {
+    /// Tried to login but in guest mode
+    NoCredentials,
     /// An error induced by a failed reqwest
     ReqwestError(reqwest::Error),
     /// An error caused by an invalid response from the Nano API
@@ -17,8 +20,9 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::ReqwestError(err) => write!(f, "Reqwest Error: {}", err),
-            Error::SimpleNanoError(code, message) => write!(f, "NanoWrimo API Error: {} (status code {})", message, code.as_u16()),
+            Error::NoCredentials => write!(f, "No credentials available"),
+            Error::ReqwestError(err) => write!(f, "Reqwest Error: {err}"),
+            Error::SimpleNanoError(code, message) => write!(f, "NanoWrimo API Error: {message} (status code {})", code.as_u16()),
             Error::NanoErrors(errs) => {
                 errs.iter().map(|err| {
                     write!(f, "{} ({}): {} (status code {})", err.title, err.code, err.detail, err.status)
@@ -31,6 +35,7 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
+            Error::NoCredentials => None,
             Error::ReqwestError(err) => Some(err),
             Error::SimpleNanoError(..) => None,
             Error::NanoErrors(..) => None,

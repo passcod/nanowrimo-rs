@@ -1,22 +1,22 @@
 [package]
 name = "nanowrimo"
-version = "0.2.5"
+version = "0.3.0"
 description = "Access to the NanoWrimo API, in all its forms"
 keywords = ["nanowrimo", "api"]
-repository = "https://github.com/craftspider/nanowrimo-rs"
+repository = "https://github.com/passcod/nanowrimo-rs"
 documentation = "https://docs.rs/nanowrimo"
-authors = ["Rune Tynan <runetynan@gmail.com>"]
+authors = ["Rune Tynan <runetynan@gmail.com>", "Félix Saparelli <felix@passcod.name>"]
 readme = "README.md"
-license = "MIT/Apache-2.0"
-edition = "2018"
+license = "Apache-2.0 OR MIT"
+edition = "2021"
 
 [dependencies]
-serde = { version = "^1.0", features = ["derive"] }
-serde_json = { version = "^1.0" }
-reqwest = { version = "^0.10", features = ["json"] }
-chrono = { version = "^0.4", features = ["serde"] }
-paste = "^1.0"
+serde = { version = "^1.0.0", features = ["derive"] }
+serde_json = { version = "^1.0.0" }
+reqwest = { version = "^0.11.0", features = ["json"] }
+chrono = { version = "^0.4.0", features = ["serde"] }
+tokio = { version = "^1.21.0", features = ["sync"] }
+paste = "^1.0.0"
 
 [dev-dependencies]
-tokio = { version = "^0.2", features = ["full"] }
-tokio-test = "^0.3"
+tokio-test = "^0.4.0"

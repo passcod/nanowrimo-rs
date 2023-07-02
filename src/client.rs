@@ -2,12 +2,13 @@ use super::data::*;
 use super::error::Error;
 use super::kind::NanoKind;
 
+use std::sync::Arc;
 use std::collections::HashMap;
-use std::cell::RefCell;
 
 use reqwest::{Client, Method, StatusCode};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
+use tokio::sync::RwLock;
 
 #[cfg(test)]
 mod tests;
@@ -20,13 +21,18 @@ fn add_included(data: &mut Vec<(String, String)>, include: &[NanoKind]) {
     }
 }
 
-/// A client with which to connect to the Nano site. Can be used with or without login.
-#[derive(Debug)]
-pub struct NanoClient {
-    client: Client,
+#[derive(Clone, Debug)]
+struct Creds {
     username: String,
     password: String,
-    token: RefCell<Option<String>>,
+}
+
+/// A client with which to connect to the Nano site. Can be used with or without login.
+#[derive(Clone, Debug)]
+pub struct NanoClient {
+    client: Client,
+    creds: Option<Arc<Creds>>,
+    token: Arc<RwLock<Option<String>>>,
 }
 
 impl NanoClient {
@@ -35,15 +41,21 @@ impl NanoClient {
     fn new(user: &str, pass: &str) -> NanoClient {
         NanoClient {
             client: Client::new(),
-            username: user.to_string(),
-            password: pass.to_string(),
-            token: RefCell::new(None),
+            creds: Some(Arc::new(Creds {
+                username: user.into(),
+                password: pass.into(),
+            })),
+            token: Default::default(),
         }
     }
 
     /// Create a new client with the 'anonymous' or 'guest' user, not logged in
     pub fn new_anon() -> NanoClient {
-        NanoClient::new("", "")
+        NanoClient {
+            client: Client::new(),
+            creds: None,
+            token: Default::default(),
+        }
     }
 
     /// Create a new client that is automatically logged in as a specific user
@@ -68,7 +80,7 @@ impl NanoClient {
 
         let mut req  = self.client.request(method, &format!("{}{}", NanoClient::BASE_URL, path));
 
-        if let Some(token) = &*self.token.borrow() {
+        if let Some(token) = self.token.read().await.as_deref() {
             req = req.header("Authorization", token)
         }
 
@@ -119,7 +131,7 @@ impl NanoClient {
         let res = self.make_request(path, method.clone(), data).await;
 
         match res {
-            Err(Error::SimpleNanoError(code, _)) if code == StatusCode::UNAUTHORIZED && self.is_logged_in() => {
+            Err(Error::SimpleNanoError(code, _)) if code == StatusCode::UNAUTHORIZED && self.is_logged_in().await => {
                 self.login().await?;
                 self.make_request(path, method, data).await
             },
@@ -128,20 +140,24 @@ impl NanoClient {
     }
 
     /// Check whether this client is currently logged in
-    pub fn is_logged_in(&self) -> bool {
-        self.token.borrow().is_none()
+    pub async fn is_logged_in(&self) -> bool {
+        self.token.read().await.is_some()
     }
 
     /// Log in this client, without logging out
     pub async fn login(&self) -> Result<(), Error> {
+        let Some(ref creds) = self.creds else {
+            return Err(Error::NoCredentials);
+        };
+
         let mut map = HashMap::new();
-        map.insert("identifier", &self.username);
-        map.insert("password", &self.password);
+        map.insert("identifier", &creds.username);
+        map.insert("password", &creds.password);
 
         let res = self.make_request::<_, LoginResponse>("users/sign_in", Method::POST, &map)
             .await?;
 
-        self.token.replace(Some(res.auth_token));
+        self.token.write().await.replace(res.auth_token);
 
         Ok(())
     }
@@ -149,29 +165,7 @@ impl NanoClient {
     /// Log out this client, without checking if it's logged in
     pub async fn logout(&self) -> Result<(), Error> {
         self.make_request::<_, ()>("users/logout", Method::POST, &()).await?;
-        self.token.replace(None);
-
-        Ok(())
-    }
-
-    /// Change the current user of the client. Logs out if necessary, and either logs in if provided
-    /// with username/password, or stays logged out and shifts to the 'guest' user
-    pub async fn change_user(&mut self, user: Option<&str>, pass: Option<&str>) -> Result<(), Error> {
-        if self.is_logged_in() {
-            self.logout().await?;
-        }
-
-        if user.is_some() && pass.is_some() {
-            self.username = user.unwrap().to_string();
-            self.password = pass.unwrap().to_string();
-            self.login().await?;
-        } else if user.is_none() && pass.is_none() {
-            self.username = "".to_string();
-            self.password = "".to_string();
-            self.token.replace(None);
-        } else {
-            panic!("Either both user and pass must be provided, or neither")
-        }
+        self.token.write().await.take();
 
         Ok(())
     }
