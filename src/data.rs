@@ -553,7 +553,7 @@ pub struct ProjectData {
     pub excerpt: Option<String>,
     pub pinterest_url: Option<String>,
     pub playlist_url: Option<String>,
-    pub primary: Option<u8>, // TODO: Figure out what this means. It's not an enum
+    pub primary: Option<i64>, // TODO: Figure out what this means. It's not an enum
     pub privacy: PrivacySetting,
     pub slug: String,
     pub status: ProjectStatus,
