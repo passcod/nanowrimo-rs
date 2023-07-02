@@ -112,7 +112,7 @@ pub(crate) fn de_rel_includes<'de, D>(des: D) -> Result<HashMap<NanoKind, Vec<Ob
                     |(_, val)| val.data.is_some()
                 )
                 .map(
-                    |(key, val)| (NanoKind::from_name(&key).unwrap(), val.data.unwrap())
+                    |(key, val)| (NanoKind::from_name(&key).expect("unwrap de_rel_includes key"), val.data.expect("unwrap de_rel_includes val"))
                 )
                 .collect()
         )
@@ -142,7 +142,7 @@ pub(crate) fn de_relation<'de, D>(des: D) -> Result<HashMap<NanoKind, RelationLi
         .map(
             |table| table.into_iter()
                 .map(
-                    |(key, val)| (NanoKind::from_name(&key).unwrap(), val.links)
+                    |(key, val)| (NanoKind::from_name(&key).expect("unwrap de_relation name"), val.links)
                 ).collect()
         )
         .map_err(serde::de::Error::custom)
