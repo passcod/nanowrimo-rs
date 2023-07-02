@@ -113,6 +113,7 @@ pub struct ItemResponse<D: ObjectInfo = Object> {
     /// The returned object
     pub data: D,
     /// Any included linked objects
+    #[serde(default)]
     pub included: Option<Vec<Object>>,
 
     /// Extra info provided for Post/Page objects

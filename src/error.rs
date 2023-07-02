@@ -35,10 +35,8 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Error::NoCredentials => None,
             Error::ReqwestError(err) => Some(err),
-            Error::SimpleNanoError(..) => None,
-            Error::NanoErrors(..) => None,
+            _ => None,
         }
     }
 }
