@@ -261,7 +261,7 @@ impl NanoClient {
     ///
     /// **Warning**: Many filter combinations are invalid, and the rules are not currently fully
     /// understood.
-    pub async fn get_all_include_filtered(&self, ty: NanoKind, include: &[NanoKind], filter: &[(&str, u64)]) -> Result<CollectionResponse, Error> {
+    pub async fn get_all_include_filtered<D: ObjectInfo + DeserializeOwned>(&self, ty: NanoKind, include: &[NanoKind], filter: &[(&str, u64)]) -> Result<CollectionResponse<D>, Error> {
         let mut data = Vec::new();
 
         for i in filter {
@@ -277,24 +277,24 @@ impl NanoClient {
 
     /// Get all accessible items of a specific kind, with filtering to certain related IDs
     /// (See [`Self::get_all_include_filtered`])
-    pub async fn get_all_filtered(&self, ty: NanoKind, filter: &[(&str, u64)]) -> Result<CollectionResponse, Error> {
+    pub async fn get_all_filtered<D: ObjectInfo + DeserializeOwned>(&self, ty: NanoKind, filter: &[(&str, u64)]) -> Result<CollectionResponse<D>, Error> {
         self.get_all_include_filtered(ty, &[], filter).await
     }
 
     /// Get all accessible items of a specific kind, with included linked items
     /// (See [`Self::get_all_include_filtered`])
-    pub async fn get_all_include(&self, ty: NanoKind, include: &[NanoKind]) -> Result<CollectionResponse, Error> {
+    pub async fn get_all_include<D: ObjectInfo + DeserializeOwned>(&self, ty: NanoKind, include: &[NanoKind]) -> Result<CollectionResponse<D>, Error> {
         self.get_all_include_filtered(ty, include, &[]).await
     }
 
     /// Get all accessible items of a specific kind, neither filtering nor including linked items
     /// (See [`Self::get_all_include_filtered`])
-    pub async fn get_all(&self, ty: NanoKind) -> Result<CollectionResponse, Error> {
+    pub async fn get_all<D: ObjectInfo + DeserializeOwned>(&self, ty: NanoKind) -> Result<CollectionResponse<D>, Error> {
         self.get_all_include_filtered(ty, &[], &[]).await
     }
 
     /// Get an item of a specific type and ID, with included linked items
-    pub async fn get_id_include(&self, ty: NanoKind, id: u64, include: &[NanoKind]) -> Result<ItemResponse, Error> {
+    pub async fn get_id_include<D: ObjectInfo + DeserializeOwned>(&self, ty: NanoKind, id: u64, include: &[NanoKind]) -> Result<ItemResponse<D>, Error> {
         let mut data = Vec::new();
 
         add_included(&mut data, include);
@@ -304,13 +304,13 @@ impl NanoClient {
 
     /// Get an item of a specific type and ID, with no included items.
     /// (See [`Self::get_id_include`])
-    pub async fn get_id(&self, ty: NanoKind, id: u64) -> Result<ItemResponse, Error> {
+    pub async fn get_id<D: ObjectInfo + DeserializeOwned>(&self, ty: NanoKind, id: u64) -> Result<ItemResponse<D>, Error> {
         self.get_id_include(ty, id, &[]).await
     }
 
     /// Get an item of a specific type and slug, with included items.
     /// A slug is a unique text identifier for an object, not all types have one.
-    pub async fn get_slug_include(&self, ty: NanoKind, slug: &str, include: &[NanoKind]) -> Result<ItemResponse, Error> {
+    pub async fn get_slug_include<D: ObjectInfo + DeserializeOwned>(&self, ty: NanoKind, slug: &str, include: &[NanoKind]) -> Result<ItemResponse<D>, Error> {
         let mut data = Vec::new();
 
         add_included(&mut data, include);
@@ -320,7 +320,7 @@ impl NanoClient {
 
     /// Get an item of a specific type and slug, with no included items.
     /// A slug is a unique text identifier for an object, not all types have one.
-    pub async fn get_slug(&self, ty: NanoKind, slug: &str) -> Result<ItemResponse, Error> {
+    pub async fn get_slug<D: ObjectInfo + DeserializeOwned>(&self, ty: NanoKind, slug: &str) -> Result<ItemResponse<D>, Error> {
         self.get_slug_include(ty, slug, &[]).await
     }
 

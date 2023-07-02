@@ -161,7 +161,7 @@ pub struct ObjectRef {
 
 /// A trait for all types that represent an 'Object' in the Nano API. See [`Object`] for the
 /// most general form of this.
-pub trait ObjectInfo {
+pub trait ObjectInfo: std::fmt::Debug {
     /// Retrive the kind of this Object
     fn kind(&self) -> NanoKind;
     /// Retrieve the ID of this object
@@ -293,8 +293,7 @@ macro_rules! obj_ty {
                 links: LinkInfo,
 
                 /// The attributes unique to this object
-                #[serde(rename = "attributes")]
-                pub data: [<$name Data>]
+                pub attributes: [<$name Data>]
             }
 
             impl ObjectInfo for [<$name Object>] {
