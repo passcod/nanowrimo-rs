@@ -9,6 +9,8 @@ use crate::ErrorData;
 pub enum Error {
     /// Tried to login but in guest mode
     NoCredentials,
+    /// Valid JSON but can't parse it
+    BadJSON(serde_json::Value),
     /// An error induced by a failed reqwest
     ReqwestError(reqwest::Error),
     /// An error caused by an invalid response from the Nano API
@@ -21,6 +23,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::NoCredentials => write!(f, "No credentials available"),
+            Error::BadJSON(val) => write!(f, "Valid JSON doesn't parse: {val}"),
             Error::ReqwestError(err) => write!(f, "Reqwest Error: {err}"),
             Error::SimpleNanoError(code, message) => write!(f, "NanoWrimo API Error: {message} (status code {})", code.as_u16()),
             Error::NanoErrors(errs) => {
