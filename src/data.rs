@@ -796,6 +796,7 @@ pub struct ProjectChallengeData {
     pub unit_type: UnitType,
     pub user_id: u64,
     pub when: Option<u64>, // TODO: ???
+    pub won_at: Option<NaiveDate>,
     pub writing_location: Option<String>, // TODO: ???
     pub writing_type: Option<WritingType>,
 }

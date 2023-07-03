@@ -119,7 +119,7 @@ impl NanoClient {
                     NanoError::ErrorList { errors } => Err(Error::NanoErrors(errors))
                 }
             },
-            NanoResponse::Unknown(val) => panic!("Couldn't parse valid JSON as NanoResponse:\n{}", val)
+            NanoResponse::Unknown(val) => Err(Error::BadJSON(val)),
         }
     }
 
