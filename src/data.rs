@@ -11,7 +11,7 @@ use serde::de::DeserializeOwned;
 // TODO: A lot of these shouldn't be pub, constructing them yourself is dangerous
 // TODO: May be possible to make time_zone a type from chrono
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(untagged, bound(deserialize = "T: DeserializeOwned"))]
 pub(crate) enum NanoResponse<T: DeserializeOwned> {
     Success(T),
@@ -20,7 +20,7 @@ pub(crate) enum NanoResponse<T: DeserializeOwned> {
 }
 
 /// The response of the Nano API when a command results in an expected error
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(untagged, deny_unknown_fields)]
 pub enum NanoError {
     /// A simple error with just a basic message
@@ -29,7 +29,7 @@ pub enum NanoError {
     ErrorList { errors: Vec<ErrorData> }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct ErrorData {
     #[serde(deserialize_with = "de_str_num")]
     pub code: u64,
@@ -40,7 +40,7 @@ pub struct ErrorData {
 }
 
 /// The response from logging into the Nano API
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct LoginResponse {
     /// The authorization token for this log-in session
@@ -48,7 +48,7 @@ pub struct LoginResponse {
 }
 
 /// Information about Nano's current funraising goals
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct Fundometer {
     /// The current end-goal
@@ -62,7 +62,7 @@ pub struct Fundometer {
 }
 
 /// An item from the Nano store
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct StoreItem {
     /// The unique slug for this item
@@ -77,7 +77,7 @@ pub struct StoreItem {
 /// A successful response from a call to the API which returns multiple items.
 /// Is generic over the inner data type, which allows for the case of a known return type
 /// to avoid needing an unwrap. Defaults to the generic Object
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct CollectionResponse<D: ObjectInfo = Object> {
     /// The array of returned objects
@@ -107,7 +107,7 @@ impl<D: ObjectInfo> CollectionResponse<D> {
 /// A successful response from a call to the API which returns a single item.
 /// Is generic over the inner data type, which allows for the case of a known return type
 /// to avoid needing an unwrap. Defaults to the generic Object
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct ItemResponse<D: ObjectInfo = Object> {
     /// The returned object
@@ -136,7 +136,7 @@ impl<D: ObjectInfo> ItemResponse<D> {
 }
 
 /// The extra info provided when getting a Post/Page object
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct PostInfo {
     /// Posts that come after this one
@@ -149,7 +149,7 @@ pub struct PostInfo {
 
 /// A reference to an included [`Object`]. Declares the kind and ID of the Object,
 /// so that it can be uniquely located in the include list
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct ObjectRef {
     /// The ID of the referenced Object
@@ -176,7 +176,7 @@ pub trait ObjectInfo: std::fmt::Debug {
 /// A common type for all Nano API objects. Most useful when you're either not sure of an API type,
 /// or want to accept multiple types in your program. See [`ObjectInfo`] for the kind of things
 /// all these objects have in common
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(tag = "type")]
 pub enum Object {
     #[serde(rename = "badges")]
@@ -286,7 +286,7 @@ macro_rules! obj_ty {
             $(
 
             #[doc = "A struct representing an object of kind " $name]
-            #[derive(Serialize, Deserialize, Debug)]
+            #[derive(Clone, Serialize, Deserialize, Debug)]
             pub struct [<$name Object>] {
                 #[serde(deserialize_with = "de_str_num")]
                 id: u64,
@@ -359,7 +359,7 @@ obj_ty!(
     UserBadge
 );
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct BadgeData {
     pub active: bool,
@@ -379,7 +379,7 @@ pub struct BadgeData {
 /// A challenge (Nano, Camp Nano, or custom).
 /// The Optional fields will generally be populated for Nanos or Camps,
 /// but null for custom challenges. (Warning: This is only mostly, not absolutely, true)
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct ChallengeData {
     pub default_goal: u64,
@@ -395,7 +395,7 @@ pub struct ChallengeData {
     pub writing_type: WritingType,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct DailyAggregateData {
     pub count: u64,
@@ -405,21 +405,21 @@ pub struct DailyAggregateData {
     pub user_id: Option<u64>
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct FavoriteAuthorData {
     pub name: String,
     pub user_id: u64
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct FavoriteBookData {
     pub title: String,
     pub user_id: u64
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct GenreData {
     pub name: String,
@@ -427,7 +427,7 @@ pub struct GenreData {
     pub user_id: u64
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct GroupData {
     pub approved_by_id: u64,
@@ -454,7 +454,7 @@ pub struct GroupData {
     pub user_id: Option<u64>
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct GroupExternalLinkData {
     pub group_id: u64,
@@ -462,7 +462,7 @@ pub struct GroupExternalLinkData {
     pub url: String
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case")]
 pub struct LocationData {
     pub city: String,
@@ -485,7 +485,7 @@ pub struct LocationData {
     pub utc_offset: Option<i64>
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct NanoMessageData {
     pub content: String,
@@ -500,7 +500,7 @@ pub struct NanoMessageData {
     pub user_id: u64,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct NotificationData {
     pub action_id: Option<u64>,
@@ -518,7 +518,7 @@ pub struct NotificationData {
     pub user_id: u64
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct PageData {
     pub body: String,
@@ -529,7 +529,7 @@ pub struct PageData {
     pub promotional_card_image: Option<String>
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct PostData {
     pub api_code: Option<String>, // TODO: ???
@@ -545,7 +545,7 @@ pub struct PostData {
     pub subhead: Option<String> // TODO: ???
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct ProjectData {
     pub cover: Option<String>,
@@ -565,7 +565,7 @@ pub struct ProjectData {
     pub writing_type: WritingType,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct ProjectSessionData {
     pub count: i64,
@@ -581,14 +581,14 @@ pub struct ProjectSessionData {
     pub r#where: Option<Where>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct StopWatchData {
     pub start: DateTime<Utc>,
     pub stop: Option<DateTime<Utc>>
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct TimerData {
     pub cancelled: bool,
@@ -597,7 +597,7 @@ pub struct TimerData {
     pub start: DateTime<Utc>
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case")]
 pub struct UserData {
     pub admin_level: AdminLevel,
@@ -638,7 +638,7 @@ pub struct UserData {
     pub time_zone: String
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct EmailSettings {
     #[serde(rename = "email-blog-posts")]
     pub blog_posts: bool,
@@ -660,7 +660,7 @@ pub struct EmailSettings {
     pub writing_reminders: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct NotificationSettings {
     #[serde(rename = "notification-buddy-activities")]
     pub buddy_activities: bool,
@@ -686,7 +686,7 @@ pub struct NotificationSettings {
     pub writing_reminders: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct PrivacySettings {
     #[serde(rename = "privacy-send-nanomessages")]
     pub send_nanomessages: PrivacySetting,
@@ -707,7 +707,7 @@ pub struct PrivacySettings {
 }
 
 // TODO: What do these *mean*, are all of them the right type?
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct StatsInfo {
     #[serde(rename = "stats-projects")]
     pub projects: u64,
@@ -737,17 +737,17 @@ pub struct StatsInfo {
     pub years_won: Option<u64>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct WritingLocationData {
     pub name: String
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct WritingMethodData {
     pub name: String
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct GroupUserData {
     pub created_at: DateTime<Utc>,
@@ -768,7 +768,7 @@ pub struct GroupUserData {
     pub user_id: u64
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LocationGroupData {
     pub group_id: u64,
@@ -776,7 +776,7 @@ pub struct LocationGroupData {
     pub primary: bool
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct ProjectChallengeData {
     pub challenge_id: u64,
@@ -801,7 +801,7 @@ pub struct ProjectChallengeData {
     pub writing_type: Option<WritingType>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct UserBadgeData {
     pub badge_id: u64,
@@ -811,7 +811,7 @@ pub struct UserBadgeData {
 }
 
 // This doesn't like deny_unknown_fields, I think due to the custom serialize/deserialize impls
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct RelationInfo {
     /// If this is Some, all references are included in the response Include array
     #[serde(flatten, deserialize_with = "de_rel_includes", serialize_with = "se_rel_includes")]
@@ -820,7 +820,7 @@ pub struct RelationInfo {
     pub relations: HashMap<NanoKind, RelationLink>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct RelationLink {
     #[serde(rename = "self")]
@@ -828,7 +828,7 @@ pub struct RelationLink {
     pub related: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct LinkInfo {
     #[serde(rename = "self")]
     pub this: String,
@@ -836,7 +836,7 @@ pub struct LinkInfo {
     pub others: HashMap<String, String>
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct LinkData {
     #[serde(rename = "self")]
     pub this: String,
