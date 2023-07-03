@@ -30,6 +30,13 @@ where
     Ok(de_str_num(des).ok())
 }
 
+pub(crate) fn se_str_id<S>(num: &u64, ser: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    num.to_string().serialize(ser)
+}
+
 pub(crate) fn de_duration_mins<'de, D>(des: D) -> Result<Duration, D::Error>
 where
     D: Deserializer<'de>,
@@ -115,6 +122,13 @@ where
         .map_err(serde::de::Error::custom)
 }
 
+#[derive(Serialize, Debug)]
+#[serde(untagged)]
+enum SeRelIncludeInner {
+    Single { data: ObjectRef },
+    Multi(Vec<ObjectRef>),
+}
+
 pub(crate) fn se_rel_includes<S>(
     val: &HashMap<NanoKind, Vec<ObjectRef>>,
     ser: S,
@@ -123,8 +137,22 @@ where
     S: Serializer,
 {
     val.iter()
-        .map(|(key, val)| (key.api_name().to_string(), val.clone()))
-        .collect::<HashMap<String, Vec<ObjectRef>>>()
+        .map(|(key, val)| {
+            if val.len() == 1 {
+                (
+                    key.api_unique_name().to_string(),
+                    SeRelIncludeInner::Single {
+                        data: val.first().unwrap().clone(),
+                    },
+                )
+            } else {
+                (
+                    key.api_name().to_string(),
+                    SeRelIncludeInner::Multi(val.clone()),
+                )
+            }
+        })
+        .collect::<HashMap<String, SeRelIncludeInner>>()
         .serialize(ser)
 }
 

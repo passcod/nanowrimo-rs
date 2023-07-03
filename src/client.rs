@@ -100,6 +100,7 @@ impl NanoClient {
         }
 
         if let Some(json) = json {
+            req = req.header(reqwest::header::CONTENT_TYPE, "application/vnd.api+json");
             trace!(
                 ?json,
                 actual = %serde_json::to_string(&json).unwrap_or("unable to render JSON".into()),

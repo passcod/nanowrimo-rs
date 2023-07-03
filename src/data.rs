@@ -114,7 +114,7 @@ pub struct ItemResponse<D: ObjectInfo = Object> {
     /// The returned object
     pub data: D,
     /// Any included linked objects
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub included: Option<Vec<Object>>,
 
     /// Extra info provided for Post/Page objects
@@ -151,7 +151,7 @@ pub struct PostInfo {
 #[serde(deny_unknown_fields)]
 pub struct ObjectRef {
     /// The ID of the referenced Object
-    #[serde(deserialize_with = "de_str_num")]
+    #[serde(deserialize_with = "de_str_num", serialize_with = "se_str_id")]
     pub id: u64,
     /// The kind of the referenced Object
     #[serde(
