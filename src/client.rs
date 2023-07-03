@@ -100,7 +100,11 @@ impl NanoClient {
         }
 
         if let Some(json) = json {
-            trace!(?json, "json request to nanowrimo.org");
+            trace!(
+                ?json,
+                actual = %serde_json::to_string(&json).unwrap_or("unable to render JSON".into()),
+                "json request to nanowrimo.org"
+            );
             req = req.json(json);
         }
 
