@@ -1,12 +1,16 @@
-use crate::{NanoKind, PrivacySetting, ProjectStatus, EventType, GroupType, EntryMethod, AdminLevel, ActionType, DisplayStatus, WritingType, ContentType, RegistrationPath, BadgeType, JoiningRule, UnitType, AdheresTo, Feeling, How, Where, InvitationStatus};
 use crate::utils::*;
+use crate::{
+    ActionType, AdheresTo, AdminLevel, BadgeType, ContentType, DisplayStatus, EntryMethod,
+    EventType, Feeling, GroupType, How, InvitationStatus, JoiningRule, NanoKind, PrivacySetting,
+    ProjectStatus, RegistrationPath, UnitType, Where, WritingType,
+};
 
 use std::collections::HashMap;
 
-use chrono::{DateTime, Utc, NaiveDate};
+use chrono::{DateTime, NaiveDate, Utc};
 use paste::paste;
-use serde::{Serialize, Deserialize};
 use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 
 // TODO: A lot of these shouldn't be pub, constructing them yourself is dangerous
 // TODO: May be possible to make time_zone a type from chrono
@@ -16,7 +20,7 @@ use serde::de::DeserializeOwned;
 pub(crate) enum NanoResponse<T: DeserializeOwned> {
     Success(T),
     Error(NanoError),
-    Unknown(serde_json::Value)
+    Unknown(serde_json::Value),
 }
 
 /// The response of the Nano API when a command results in an expected error
@@ -26,7 +30,7 @@ pub enum NanoError {
     /// A simple error with just a basic message
     SimpleError { error: String },
     /// A response with multiple complex errors
-    ErrorList { errors: Vec<ErrorData> }
+    ErrorList { errors: Vec<ErrorData> },
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -44,7 +48,7 @@ pub struct ErrorData {
 #[serde(deny_unknown_fields)]
 pub struct LoginResponse {
     /// The authorization token for this log-in session
-    pub auth_token: String
+    pub auth_token: String,
 }
 
 /// Information about Nano's current funraising goals
@@ -58,7 +62,7 @@ pub struct Fundometer {
     pub raised: f64,
     /// The number of people who have donated
     #[serde(rename = "donorCount")]
-    pub donor_count: u64
+    pub donor_count: u64,
 }
 
 /// An item from the Nano store
@@ -71,7 +75,7 @@ pub struct StoreItem {
     #[serde(deserialize_with = "de_heighten_img")]
     pub image: String,
     /// The user-facing title of this item
-    pub title: String
+    pub title: String,
 }
 
 /// A successful response from a call to the API which returns multiple items.
@@ -87,20 +91,17 @@ pub struct CollectionResponse<D: ObjectInfo = Object> {
 
     /// Extra info provided for Post objects
     #[serde(flatten)]
-    pub post_info: Option<Box<PostInfo>>
+    pub post_info: Option<Box<PostInfo>>,
 }
 
 impl<D: ObjectInfo> CollectionResponse<D> {
     /// Find the instance of an ObjectRef in this response's included list, if
     /// an instance exists. Otherwise returns None
     pub fn get_ref(&self, obj_ref: &ObjectRef) -> Option<&Object> {
-        self.included
-            .as_ref()
-            .and_then(
-                |val| val.iter().find(
-                    |obj| obj.id() == obj_ref.id && obj.kind() == obj_ref.kind
-                )
-            )
+        self.included.as_ref().and_then(|val| {
+            val.iter()
+                .find(|obj| obj.id() == obj_ref.id && obj.kind() == obj_ref.kind)
+        })
     }
 }
 
@@ -118,20 +119,17 @@ pub struct ItemResponse<D: ObjectInfo = Object> {
 
     /// Extra info provided for Post/Page objects
     #[serde(flatten)]
-    pub post_info: Option<Box<PostInfo>>
+    pub post_info: Option<Box<PostInfo>>,
 }
 
 impl<D: ObjectInfo> ItemResponse<D> {
     /// Find the instance of an ObjectRef in this response's included list, if
     /// an instance exists. Otherwise returns None
     pub fn get_ref(&self, obj_ref: &ObjectRef) -> Option<&Object> {
-        self.included
-            .as_ref()
-            .and_then(
-                |val| val.iter().find(
-                    |obj| obj.id() == obj_ref.id && obj.kind() == obj_ref.kind
-                )
-            )
+        self.included.as_ref().and_then(|val| {
+            val.iter()
+                .find(|obj| obj.id() == obj_ref.id && obj.kind() == obj_ref.kind)
+        })
     }
 }
 
@@ -144,7 +142,7 @@ pub struct PostInfo {
     /// Info about the author(s) of this post
     pub author_cards: CollectionResponse<PostObject>,
     /// Posts that come before this one
-    pub before_posts: Vec<ItemResponse<PostObject>>
+    pub before_posts: Vec<ItemResponse<PostObject>>,
 }
 
 /// A reference to an included [`Object`]. Declares the kind and ID of the Object,
@@ -156,8 +154,12 @@ pub struct ObjectRef {
     #[serde(deserialize_with = "de_str_num")]
     pub id: u64,
     /// The kind of the referenced Object
-    #[serde(rename = "type", deserialize_with = "de_nanokind", serialize_with = "se_nanokind")]
-    pub kind: NanoKind
+    #[serde(
+        rename = "type",
+        deserialize_with = "de_nanokind",
+        serialize_with = "se_nanokind"
+    )]
+    pub kind: NanoKind,
 }
 
 /// A trait for all types that represent an 'Object' in the Nano API. See [`Object`] for the
@@ -170,7 +172,7 @@ pub trait ObjectInfo: std::fmt::Debug {
     /// Get the relationships of this Object, if it has any
     fn relationships(&self) -> &Option<RelationInfo>;
     /// Get the links for this Object, of which there should always be at least a link for `self`
-    fn links(&self) -> &LinkInfo;
+    fn links(&self) -> &Option<LinkInfo>;
 }
 
 /// A common type for all Nano API objects. Most useful when you're either not sure of an API type,
@@ -275,9 +277,13 @@ impl ObjectInfo for Object {
         self.inner().relationships()
     }
 
-    fn links(&self) -> &LinkInfo {
+    fn links(&self) -> &Option<LinkInfo> {
         self.inner().links()
     }
+}
+
+const fn is_zero(n: &u64) -> bool {
+    *n == 0
 }
 
 macro_rules! obj_ty {
@@ -288,10 +294,12 @@ macro_rules! obj_ty {
             #[doc = "A struct representing an object of kind " $name]
             #[derive(Clone, Serialize, Deserialize, Debug)]
             pub struct [<$name Object>] {
-                #[serde(deserialize_with = "de_str_num")]
-                id: u64,
-                relationships: Option<RelationInfo>,
-                links: LinkInfo,
+                #[serde(deserialize_with = "de_str_num", skip_serializing_if = "is_zero")]
+                pub id: u64,
+                #[serde(default, skip_serializing_if = "Option::is_none")]
+                pub relationships: Option<RelationInfo>,
+                #[serde(default, skip_serializing_if = "Option::is_none")]
+                pub links: Option<LinkInfo>,
 
                 /// The attributes unique to this object
                 pub attributes: [<$name Data>]
@@ -310,7 +318,7 @@ macro_rules! obj_ty {
                     &self.relationships
                 }
 
-                fn links(&self) -> &LinkInfo {
+                fn links(&self) -> &Option<LinkInfo> {
                     &self.links
                 }
             }
@@ -373,7 +381,7 @@ pub struct BadgeData {
     pub suborder: Option<u64>,
     pub title: String,
     pub unawarded: String,
-    pub winner: bool
+    pub winner: bool,
 }
 
 /// A challenge (Nano, Camp Nano, or custom).
@@ -386,7 +394,7 @@ pub struct ChallengeData {
     pub ends_at: NaiveDate,
     pub event_type: Option<EventType>,
     pub flexible_goal: Option<bool>,
-    pub name : String,
+    pub name: String,
     pub prep_starts_at: Option<NaiveDate>,
     pub starts_at: NaiveDate,
     pub unit_type: UnitType,
@@ -402,21 +410,21 @@ pub struct DailyAggregateData {
     pub day: NaiveDate,
     pub project_id: u64,
     pub unit_type: UnitType,
-    pub user_id: Option<u64>
+    pub user_id: Option<u64>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct FavoriteAuthorData {
     pub name: String,
-    pub user_id: u64
+    pub user_id: u64,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct FavoriteBookData {
     pub title: String,
-    pub user_id: u64
+    pub user_id: u64,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -424,7 +432,7 @@ pub struct FavoriteBookData {
 pub struct GenreData {
     pub name: String,
     /// The user who created this Genre label
-    pub user_id: u64
+    pub user_id: u64,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -451,7 +459,7 @@ pub struct GroupData {
     pub time_zone: Option<String>,
     pub updated_at: DateTime<Utc>,
     pub url: Option<String>,
-    pub user_id: Option<u64>
+    pub user_id: Option<u64>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -459,7 +467,7 @@ pub struct GroupData {
 pub struct GroupExternalLinkData {
     pub group_id: u64,
     pub label: Option<String>,
-    pub url: String
+    pub url: String,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -482,7 +490,7 @@ pub struct LocationData {
     pub street1: Option<String>,
     #[serde(rename = "street2")]
     pub street2: Option<String>,
-    pub utc_offset: Option<i64>
+    pub utc_offset: Option<i64>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -515,7 +523,7 @@ pub struct NotificationData {
     pub last_viewed_at: Option<DateTime<Utc>>,
     pub redirect_url: Option<String>,
     pub updated_at: DateTime<Utc>,
-    pub user_id: u64
+    pub user_id: u64,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -526,7 +534,7 @@ pub struct PageData {
     pub headline: String,
     pub content_type: ContentType,
     pub show_after: Option<DateTime<Utc>>,
-    pub promotional_card_image: Option<String>
+    pub promotional_card_image: Option<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -542,7 +550,7 @@ pub struct PostData {
     pub offer_code: Option<String>,
     pub order: Option<u64>,
     pub published: bool,
-    pub subhead: Option<String> // TODO: ???
+    pub subhead: Option<String>, // TODO: ???
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -565,17 +573,17 @@ pub struct ProjectData {
     pub writing_type: WritingType,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct ProjectSessionData {
     pub count: i64,
-    pub created_at: DateTime<Utc>,
-    pub end: DateTime<Utc>,
+    pub created_at: Option<DateTime<Utc>>,
+    pub end: Option<DateTime<Utc>>,
     pub feeling: Option<Feeling>,
     pub how: Option<How>,
-    pub project_challenge_id: u64,
-    pub project_id: u64,
-    pub session_date: NaiveDate,
+    pub project_challenge_id: Option<u64>,
+    pub project_id: Option<u64>,
+    pub session_date: Option<NaiveDate>,
     pub start: Option<DateTime<Utc>>,
     pub unit_type: UnitType,
     pub r#where: Option<Where>,
@@ -585,16 +593,19 @@ pub struct ProjectSessionData {
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct StopWatchData {
     pub start: DateTime<Utc>,
-    pub stop: Option<DateTime<Utc>>
+    pub stop: Option<DateTime<Utc>>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct TimerData {
     pub cancelled: bool,
-    #[serde(deserialize_with = "de_duration_mins", serialize_with = "se_duration_mins")]
+    #[serde(
+        deserialize_with = "de_duration_mins",
+        serialize_with = "se_duration_mins"
+    )]
     pub duration: chrono::Duration,
-    pub start: DateTime<Utc>
+    pub start: DateTime<Utc>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -629,13 +640,13 @@ pub struct UserData {
 
     pub registration_path: RegistrationPath,
     pub setting_session_count_by_session: u8, // TODO: ???
-    pub setting_session_more_info: bool, // TODO: ???
+    pub setting_session_more_info: bool,      // TODO: ???
     pub slug: String,
 
     #[serde(flatten)]
     pub stats: StatsInfo,
 
-    pub time_zone: String
+    pub time_zone: String,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -739,12 +750,12 @@ pub struct StatsInfo {
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct WritingLocationData {
-    pub name: String
+    pub name: String,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct WritingMethodData {
-    pub name: String
+    pub name: String,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -765,7 +776,7 @@ pub struct GroupUserData {
     pub num_unread_messages: u64,
     pub primary: u64,
     pub updated_at: DateTime<Utc>,
-    pub user_id: u64
+    pub user_id: u64,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -773,7 +784,7 @@ pub struct GroupUserData {
 pub struct LocationGroupData {
     pub group_id: u64,
     pub location_id: u64,
-    pub primary: bool
+    pub primary: bool,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -814,9 +825,17 @@ pub struct UserBadgeData {
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct RelationInfo {
     /// If this is Some, all references are included in the response Include array
-    #[serde(flatten, deserialize_with = "de_rel_includes", serialize_with = "se_rel_includes")]
+    #[serde(
+        flatten,
+        deserialize_with = "de_rel_includes",
+        serialize_with = "se_rel_includes"
+    )]
     pub included: HashMap<NanoKind, Vec<ObjectRef>>,
-    #[serde(flatten, deserialize_with = "de_relation", serialize_with = "se_relation")]
+    #[serde(
+        flatten,
+        deserialize_with = "de_relation",
+        serialize_with = "se_relation"
+    )]
     pub relations: HashMap<NanoKind, RelationLink>,
 }
 
@@ -833,7 +852,7 @@ pub struct LinkInfo {
     #[serde(rename = "self")]
     pub this: String,
     #[serde(flatten)]
-    pub others: HashMap<String, String>
+    pub others: HashMap<String, String>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -842,5 +861,5 @@ pub struct LinkData {
     pub this: String,
 
     #[serde(flatten)]
-    pub extra: HashMap<String, String>
+    pub extra: HashMap<String, String>,
 }

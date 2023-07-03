@@ -1,7 +1,8 @@
 use super::*;
 
 async fn test_client() -> NanoClient {
-    NanoClient::new_user(env!("NANO_USERNAME"), env!("NANO_PASSWORD")).await
+    NanoClient::new_user(env!("NANO_USERNAME"), env!("NANO_PASSWORD"))
+        .await
         .expect("Couldn't create and log-in a new NanoClient")
 }
 
@@ -14,7 +15,8 @@ async fn connect() {
 async fn test_current_user() {
     let client = test_client().await;
 
-    client.current_user()
+    client
+        .current_user()
         .await
         .expect("Couldn't get current user");
 }
@@ -23,14 +25,18 @@ async fn test_current_user() {
 async fn test_fundometer() {
     let client = test_client().await;
 
-    client.fundometer().await.expect("Couldn't get Nano Fundometer");
+    client
+        .fundometer()
+        .await
+        .expect("Couldn't get Nano Fundometer");
 }
 
 #[tokio::test]
 async fn test_notifications() {
     let client = test_client().await;
 
-    client.notifications()
+    client
+        .notifications()
         .await
         .expect("Couldn't get user notifications");
 }
@@ -40,11 +46,21 @@ async fn test_pages() {
     let client = test_client().await;
 
     for &i in &[
-        "what-is-camp-nanowrimo", "nano-prep-101", "pep-talks", "dei", "come-write-in",
-        "about-nano", "staff", "board-of-directors", "writers-board", "terms-and-conditions",
-        "writers-board", "brought-to-you-by"
+        "what-is-camp-nanowrimo",
+        "nano-prep-101",
+        "pep-talks",
+        "dei",
+        "come-write-in",
+        "about-nano",
+        "staff",
+        "board-of-directors",
+        "writers-board",
+        "terms-and-conditions",
+        "writers-board",
+        "brought-to-you-by",
     ] {
-        client.pages(i)
+        client
+            .pages(i)
             .await
             .expect("Couldn't get page that was expected to exist");
     }
@@ -54,7 +70,8 @@ async fn test_pages() {
 async fn test_daily_aggregates() {
     let client = test_client().await;
 
-    client.daily_aggregates(2617284)
+    client
+        .daily_aggregates(2617284)
         .await
         .expect("Couldn't get daily aggregates");
 }
@@ -64,12 +81,17 @@ async fn test_get_all_filtered() {
     let client = test_client().await;
     let user_id = client.current_user().await.unwrap().data.id();
 
-    let projects = client.get_all_filtered(NanoKind::Project, &[("user_id", user_id)])
+    let projects = client
+        .get_all_filtered(NanoKind::Project, &[("user_id", user_id)])
         .await
         .expect("Couldn't get all filtered projects of the current user");
 
     for i in projects.data {
-        assert_eq!(i.kind(), NanoKind::Project, "get_all_filtered with Project kind didn't return all projects");
+        assert_eq!(
+            i.kind(),
+            NanoKind::Project,
+            "get_all_filtered with Project kind didn't return all projects"
+        );
     }
 }
 
@@ -77,11 +99,16 @@ async fn test_get_all_filtered() {
 async fn test_get_id() {
     let client = test_client().await;
 
-    let badge = client.get_id(NanoKind::Badge, 1)
+    let badge = client
+        .get_id(NanoKind::Badge, 1)
         .await
         .expect("Couldn't get by ID an example Badge");
 
-    assert_eq!(badge.data.kind(), NanoKind::Badge, "get_id with Badge kind didn't return a badge")
+    assert_eq!(
+        badge.data.kind(),
+        NanoKind::Badge,
+        "get_id with Badge kind didn't return a badge"
+    )
 }
 
 /*

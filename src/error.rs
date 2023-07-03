@@ -1,7 +1,7 @@
 use std::{error, fmt};
 
-use reqwest::StatusCode;
 use crate::ErrorData;
+use reqwest::StatusCode;
 
 /// A common error type returned from Nano API operations
 #[derive(Debug)]
@@ -16,7 +16,7 @@ pub enum Error {
     /// An error caused by an invalid response from the Nano API
     SimpleNanoError(StatusCode, String),
     /// An error from Nano with multiple complex inner values
-    NanoErrors(Vec<ErrorData>)
+    NanoErrors(Vec<ErrorData>),
 }
 
 impl fmt::Display for Error {
@@ -25,12 +25,21 @@ impl fmt::Display for Error {
             Error::NoCredentials => write!(f, "No credentials available"),
             Error::BadJSON(val) => write!(f, "Valid JSON doesn't parse: {val}"),
             Error::ReqwestError(err) => write!(f, "Reqwest Error: {err}"),
-            Error::SimpleNanoError(code, message) => write!(f, "NanoWrimo API Error: {message} (status code {})", code.as_u16()),
-            Error::NanoErrors(errs) => {
-                errs.iter().map(|err| {
-                    write!(f, "{} ({}): {} (status code {})", err.title, err.code, err.detail, err.status)
-                }).collect::<Result<_, _>>()
-            },
+            Error::SimpleNanoError(code, message) => write!(
+                f,
+                "NanoWrimo API Error: {message} (status code {})",
+                code.as_u16()
+            ),
+            Error::NanoErrors(errs) => errs
+                .iter()
+                .map(|err| {
+                    write!(
+                        f,
+                        "{} ({}): {} (status code {})",
+                        err.title, err.code, err.detail, err.status
+                    )
+                })
+                .collect::<Result<_, _>>(),
         }
     }
 }

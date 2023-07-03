@@ -1,6 +1,6 @@
 use std::convert::TryFrom;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, PartialEq, Eq, Debug, Copy, Clone)]
 #[serde(try_from = "u8", into = "u8")]
@@ -18,7 +18,7 @@ impl TryFrom<u8> for PrivacySetting {
             0 => Ok(PrivacySetting::Private),
             1 => Ok(PrivacySetting::Buddies),
             2 => Ok(PrivacySetting::Anyone),
-            _ => Err("Cannot convert u8 into PrivacySetting")
+            _ => Err("Cannot convert u8 into PrivacySetting"),
         }
     }
 }
@@ -53,7 +53,7 @@ impl TryFrom<&str> for ProjectStatus {
             "Drafted" => Ok(ProjectStatus::Drafted),
             "Completed" => Ok(ProjectStatus::Completed),
             "Published" => Ok(ProjectStatus::Published),
-            _ => Err("Cannot convert &str into ProjectStatus")
+            _ => Err("Cannot convert &str into ProjectStatus"),
         }
     }
 }
@@ -86,7 +86,7 @@ impl TryFrom<u8> for EventType {
             0 => Ok(EventType::NanoWrimo),
             1 => Ok(EventType::CampNano),
             2 => Ok(EventType::Custom),
-            _ => Err("Cannot convert u8 into EventType")
+            _ => Err("Cannot convert u8 into EventType"),
         }
     }
 }
@@ -121,7 +121,7 @@ impl TryFrom<&str> for GroupType {
             "buddies" => Ok(GroupType::Buddies),
             "writing group" => Ok(GroupType::WritingGroup),
             "event" => Ok(GroupType::Event),
-            _ => Err("Cannot convert &str into GroupType")
+            _ => Err("Cannot convert &str into GroupType"),
         }
     }
 }
@@ -158,7 +158,7 @@ impl TryFrom<&str> for EntryMethod {
             "create" => Ok(EntryMethod::Create),
             "invited" => Ok(EntryMethod::Invited),
             "blocked" => Ok(EntryMethod::Blocked),
-            _ => Err("Cannot convert &str into EntryMethod")
+            _ => Err("Cannot convert &str into EntryMethod"),
         }
     }
 }
@@ -179,17 +179,17 @@ impl Into<&'static str> for EntryMethod {
 #[serde(try_from = "u8", into = "u8")]
 pub enum AdminLevel {
     User,
-    Admin
+    Admin,
 }
 
 impl TryFrom<u8> for AdminLevel {
     type Error = &'static str;
 
-    fn try_from(val: u8) ->  Result<AdminLevel, Self::Error> {
+    fn try_from(val: u8) -> Result<AdminLevel, Self::Error> {
         match val {
             0 => Ok(AdminLevel::User),
             1 => Ok(AdminLevel::Admin),
-            _ => Err("Cannot convert u8 into AdminLevel")
+            _ => Err("Cannot convert u8 into AdminLevel"),
         }
     }
 }
@@ -221,7 +221,7 @@ impl TryFrom<&str> for ActionType {
             "BUDDIES_PAGE" => Ok(ActionType::BuddiesPage),
             "NANOMESSAGES" => Ok(ActionType::NanoMessages),
             "PROJECTS_PAGE" => Ok(ActionType::ProjectsPage),
-            _ => Err("Cannot convert &str into ActionType")
+            _ => Err("Cannot convert &str into ActionType"),
         }
     }
 }
@@ -232,7 +232,7 @@ impl Into<&'static str> for ActionType {
             ActionType::BadgeAwarded => "BADGE_AWARDED",
             ActionType::BuddiesPage => "BUDDIES_PAGE",
             ActionType::NanoMessages => "NANOMESSAGES",
-            ActionType::ProjectsPage => "PROJECTS_PAGE"
+            ActionType::ProjectsPage => "PROJECTS_PAGE",
         }
     }
 }
@@ -248,11 +248,11 @@ pub enum DisplayStatus {
 impl TryFrom<u8> for DisplayStatus {
     type Error = &'static str;
 
-    fn try_from(val: u8) ->  Result<DisplayStatus, Self::Error> {
+    fn try_from(val: u8) -> Result<DisplayStatus, Self::Error> {
         match val {
             0 => Ok(DisplayStatus::AllNotifs),
             1 => Ok(DisplayStatus::RecentNotifs),
-            _ => Err("Cannot convert u8 into DisplayStatus")
+            _ => Err("Cannot convert u8 into DisplayStatus"),
         }
     }
 }
@@ -276,13 +276,13 @@ pub enum WritingType {
     Script,
     Nonfiction,
     Poetry,
-    Other
+    Other,
 }
 
 impl TryFrom<u8> for WritingType {
     type Error = &'static str;
 
-    fn try_from(val: u8) ->  Result<WritingType, Self::Error> {
+    fn try_from(val: u8) -> Result<WritingType, Self::Error> {
         match val {
             0 => Ok(WritingType::Novel),
             1 => Ok(WritingType::ShortStories),
@@ -291,7 +291,7 @@ impl TryFrom<u8> for WritingType {
             4 => Ok(WritingType::Nonfiction),
             5 => Ok(WritingType::Poetry),
             6 => Ok(WritingType::Other),
-            _ => Err("Cannot convert u8 into WritingType")
+            _ => Err("Cannot convert u8 into WritingType"),
         }
     }
 }
@@ -305,7 +305,7 @@ impl Into<u8> for WritingType {
             WritingType::Script => 3,
             WritingType::Nonfiction => 4,
             WritingType::Poetry => 5,
-            WritingType::Other => 8
+            WritingType::Other => 8,
         }
     }
 }
@@ -336,7 +336,7 @@ impl TryFrom<&str> for ContentType {
             "Person Card" => Ok(ContentType::PersonCard),
             "Pep Talk" => Ok(ContentType::PepTalk),
             "Plain Text" => Ok(ContentType::PlainText),
-            _ => Err("Cannot convert &str into ContentType")
+            _ => Err("Cannot convert &str into ContentType"),
         }
     }
 }
@@ -372,7 +372,7 @@ impl TryFrom<&str> for RegistrationPath {
             "email" => Ok(RegistrationPath::Email),
             "Facebook" => Ok(RegistrationPath::Facebook),
             "Google" => Ok(RegistrationPath::Google),
-            _ => Err("Cannot convert &str into RegistrationPath")
+            _ => Err("Cannot convert &str into RegistrationPath"),
         }
     }
 }
@@ -392,7 +392,7 @@ impl Into<&'static str> for RegistrationPath {
 pub enum BadgeType {
     WordCount,
     SelfAwarded,
-    Participation
+    Participation,
 }
 
 impl TryFrom<&str> for BadgeType {
@@ -403,7 +403,7 @@ impl TryFrom<&str> for BadgeType {
             "word count" => Ok(BadgeType::WordCount),
             "self-awarded" => Ok(BadgeType::SelfAwarded),
             "participation" => Ok(BadgeType::Participation),
-            _ => Err("Cannot convert &str into BadgeType")
+            _ => Err("Cannot convert &str into BadgeType"),
         }
     }
 }
@@ -432,7 +432,7 @@ impl TryFrom<u8> for JoiningRule {
         match val {
             0 => Ok(JoiningRule::AdminOnly),
             1 => Ok(JoiningRule::AnyUser),
-            _ => Err("Cannot convert u8 into JoiningRule")
+            _ => Err("Cannot convert u8 into JoiningRule"),
         }
     }
 }
@@ -446,11 +446,12 @@ impl Into<u8> for JoiningRule {
     }
 }
 
-#[derive(Deserialize, Serialize, PartialEq, Eq, Debug, Copy, Clone)]
+#[derive(Deserialize, Serialize, PartialEq, Eq, Debug, Copy, Clone, Default)]
 #[serde(try_from = "u8", into = "u8")]
 pub enum UnitType {
+    #[default]
     Words,
-    Hours
+    Hours,
 }
 
 impl TryFrom<u8> for UnitType {
@@ -460,7 +461,7 @@ impl TryFrom<u8> for UnitType {
         match val {
             0 => Ok(UnitType::Words),
             1 => Ok(UnitType::Hours),
-            _ => Err("Cannot convert u8 into UnitType")
+            _ => Err("Cannot convert u8 into UnitType"),
         }
     }
 }
@@ -491,7 +492,7 @@ impl TryFrom<&str> for AdheresTo {
             "" => Ok(AdheresTo::Unknown),
             "user" => Ok(AdheresTo::User),
             "project_challenge" => Ok(AdheresTo::ProjectChallenge),
-            _ => Err("Cannot convert &str into AdheresTo")
+            _ => Err("Cannot convert &str into AdheresTo"),
         }
     }
 }
@@ -526,7 +527,7 @@ impl TryFrom<u8> for Feeling {
             3 => Ok(Feeling::Okay),
             4 => Ok(Feeling::PrettyGood),
             5 => Ok(Feeling::Great),
-            _ => Err("Cannot convert u8 into Feeling")
+            _ => Err("Cannot convert u8 into Feeling"),
         }
     }
 }
@@ -550,7 +551,7 @@ pub enum Where {
     Office,
     Library,
     Cafe,
-    Other(u8)
+    Other(u8),
 }
 
 impl From<u8> for Where {
@@ -560,7 +561,7 @@ impl From<u8> for Where {
             1 => Where::Office,
             2 => Where::Library,
             3 => Where::Cafe,
-            _ => Where::Other(val)
+            _ => Where::Other(val),
         }
     }
 }
@@ -572,7 +573,7 @@ impl Into<u8> for Where {
             Where::Office => 1,
             Where::Library => 2,
             Where::Cafe => 3,
-            Where::Other(val) => val
+            Where::Other(val) => val,
         }
     }
 }
@@ -584,7 +585,7 @@ pub enum How {
     Typewriter,
     Laptop,
     Phone,
-    Other(u8)
+    Other(u8),
 }
 
 impl From<u8> for How {
@@ -594,7 +595,7 @@ impl From<u8> for How {
             1 => How::Typewriter,
             2 => How::Laptop,
             3 => How::Phone,
-            _ => How::Other(val)
+            _ => How::Other(val),
         }
     }
 }
@@ -606,7 +607,7 @@ impl Into<u8> for How {
             How::Typewriter => 1,
             How::Laptop => 2,
             How::Phone => 3,
-            How::Other(val) => val
+            How::Other(val) => val,
         }
     }
 }
@@ -616,7 +617,7 @@ impl Into<u8> for How {
 pub enum InvitationStatus {
     Blocked,
     Sent,
-    Accepted
+    Accepted,
 }
 
 impl TryFrom<i8> for InvitationStatus {
@@ -627,7 +628,7 @@ impl TryFrom<i8> for InvitationStatus {
             -2 => Ok(InvitationStatus::Blocked),
             0 => Ok(InvitationStatus::Sent),
             1 => Ok(InvitationStatus::Accepted),
-            _ => Err("Cannot convert i8 into InvitationStatus")
+            _ => Err("Cannot convert i8 into InvitationStatus"),
         }
     }
 }

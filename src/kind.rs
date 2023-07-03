@@ -1,4 +1,3 @@
-
 /// A representation of the known kinds of NanoWrimo Objects. This enum is marked non_exhaustive
 /// because it tracks the private API, and thus it is unsure if this lists every possible type,
 /// and new ones may be added or removed at any time by Nano.
@@ -35,7 +34,7 @@ pub enum NanoKind {
     ProjectChallenge,
     UserBadge,
     // It cannot be assumed that we know all possible NanoKinds as it stands
-    __NonExhaustive
+    __NonExhaustive,
 }
 
 impl NanoKind {
@@ -71,7 +70,7 @@ impl NanoKind {
             "post-pages" => NanoKind::PostPage,
             "project-challenges" | "project-challenge" => NanoKind::ProjectChallenge,
             "user-badges" => NanoKind::UserBadge,
-            kind => return Err(format!("Unknown/unimplemented NanoKind: {}", kind))
+            kind => return Err(format!("Unknown/unimplemented NanoKind: {}", kind)),
         })
     }
 
@@ -108,7 +107,7 @@ impl NanoKind {
             NanoKind::PostPage => "post-pages",
             NanoKind::ProjectChallenge => "project-challenges",
             NanoKind::UserBadge => "user-badges",
-            kind => panic!("Unknown/unimplemented NanoKind: {:?}", kind)
+            kind => panic!("Unknown/unimplemented NanoKind: {:?}", kind),
         }
     }
 
@@ -145,7 +144,7 @@ impl NanoKind {
             NanoKind::PostPage => "post-page",
             NanoKind::ProjectChallenge => "project-challenge",
             NanoKind::UserBadge => "user-badge",
-            kind => panic!("Unknown/unimplemented NanoKind: {:?}", kind)
+            kind => panic!("Unknown/unimplemented NanoKind: {:?}", kind),
         }
     }
 }

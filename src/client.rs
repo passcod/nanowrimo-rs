@@ -2,12 +2,12 @@ use super::data::*;
 use super::error::Error;
 use super::kind::NanoKind;
 
-use std::sync::Arc;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use reqwest::{Client, Method, StatusCode};
-use serde::Serialize;
 use serde::de::DeserializeOwned;
+use serde::Serialize;
 use tokio::sync::RwLock;
 
 #[cfg(test)]
@@ -15,9 +15,14 @@ mod tests;
 
 fn add_included(data: &mut Vec<(String, String)>, include: &[NanoKind]) {
     if !include.is_empty() {
-        data.push(
-            ("include".to_string(), include.iter().map(|kind| kind.api_name()).collect::<Vec<&str>>().join(","))
-        )
+        data.push((
+            "include".to_string(),
+            include
+                .iter()
+                .map(|kind| kind.api_name())
+                .collect::<Vec<&str>>()
+                .join(","),
+        ))
     }
 }
 
@@ -66,19 +71,21 @@ impl NanoClient {
     }
 
     async fn make_request<T, U>(&self, path: &str, method: Method, data: &T) -> Result<U, Error>
-        where
-            T: Serialize + ?Sized,
-            U: DeserializeOwned + std::fmt::Debug
+    where
+        T: Serialize + ?Sized,
+        U: DeserializeOwned + std::fmt::Debug,
     {
         let mut query = None;
         let mut json = None;
 
         match method {
             Method::GET => query = Some(data),
-            _ => json = Some(data)
+            _ => json = Some(data),
         }
 
-        let mut req  = self.client.request(method, &format!("{}{}", NanoClient::BASE_URL, path));
+        let mut req = self
+            .client
+            .request(method, &format!("{}{}", NanoClient::BASE_URL, path));
 
         if let Some(token) = self.token.read().await.as_deref() {
             req = req.header("Authorization", token)
@@ -92,50 +99,50 @@ impl NanoClient {
             req = req.json(json)
         }
 
-        let resp = req.send()
-            .await?;
+        let resp = req.send().await?;
 
         let status = resp.status();
 
         match status {
-            StatusCode::INTERNAL_SERVER_ERROR => return Err(
-                Error::SimpleNanoError(status, "Internal Server Error".to_string())
-            ),
-            StatusCode::NOT_FOUND => return Err(
-                Error::SimpleNanoError(status, "Page Not Found".to_string())
-            ),
-            _ => ()
+            StatusCode::INTERNAL_SERVER_ERROR => {
+                return Err(Error::SimpleNanoError(
+                    status,
+                    "Internal Server Error".to_string(),
+                ))
+            }
+            StatusCode::NOT_FOUND => {
+                return Err(Error::SimpleNanoError(status, "Page Not Found".to_string()))
+            }
+            _ => (),
         }
 
-        let nano_resp = resp
-            .json()
-            .await?;
+        let nano_resp = resp.json().await?;
 
         match nano_resp {
             NanoResponse::Success(val) => Ok(val),
-            NanoResponse::Error(err) => {
-                match err {
-                    NanoError::SimpleError { error } => Err(Error::SimpleNanoError(status, error)),
-                    NanoError::ErrorList { errors } => Err(Error::NanoErrors(errors))
-                }
+            NanoResponse::Error(err) => match err {
+                NanoError::SimpleError { error } => Err(Error::SimpleNanoError(status, error)),
+                NanoError::ErrorList { errors } => Err(Error::NanoErrors(errors)),
             },
             NanoResponse::Unknown(val) => Err(Error::BadJSON(val)),
         }
     }
 
     async fn retry_request<T, U>(&self, path: &str, method: Method, data: &T) -> Result<U, Error>
-        where
-            T: Serialize + ?Sized,
-            U: DeserializeOwned + std::fmt::Debug
+    where
+        T: Serialize + ?Sized,
+        U: DeserializeOwned + std::fmt::Debug,
     {
         let res = self.make_request(path, method.clone(), data).await;
 
         match res {
-            Err(Error::SimpleNanoError(code, _)) if code == StatusCode::UNAUTHORIZED && self.is_logged_in().await => {
+            Err(Error::SimpleNanoError(code, _))
+                if code == StatusCode::UNAUTHORIZED && self.is_logged_in().await =>
+            {
                 self.login().await?;
                 self.make_request(path, method, data).await
-            },
-            _ => res
+            }
+            _ => res,
         }
     }
 
@@ -154,7 +161,8 @@ impl NanoClient {
         map.insert("identifier", &creds.username);
         map.insert("password", &creds.password);
 
-        let res = self.make_request::<_, LoginResponse>("users/sign_in", Method::POST, &map)
+        let res = self
+            .make_request::<_, LoginResponse>("users/sign_in", Method::POST, &map)
             .await?;
 
         self.token.write().await.replace(res.auth_token);
@@ -164,7 +172,8 @@ impl NanoClient {
 
     /// Log out this client, without checking if it's logged in
     pub async fn logout(&self) -> Result<(), Error> {
-        self.make_request::<_, ()>("users/logout", Method::POST, &()).await?;
+        self.make_request::<_, ()>("users/logout", Method::POST, &())
+            .await?;
         self.token.write().await.take();
 
         Ok(())
@@ -179,7 +188,8 @@ impl NanoClient {
 
     /// Search for users by username
     pub async fn search(&self, name: &str) -> Result<CollectionResponse<UserObject>, Error> {
-        self.retry_request("search", Method::GET, &[("q", name)]).await
+        self.retry_request("search", Method::GET, &[("q", name)])
+            .await
     }
 
     /// Get a random sponsor offer
@@ -198,12 +208,16 @@ impl NanoClient {
     }
 
     /// Get the currently logged in user, with included linked items
-    pub async fn current_user_include(&self, include: &[NanoKind]) -> Result<ItemResponse<UserObject>, Error> {
+    pub async fn current_user_include(
+        &self,
+        include: &[NanoKind],
+    ) -> Result<ItemResponse<UserObject>, Error> {
         let mut data = Vec::new();
 
         add_included(&mut data, include);
 
-        self.retry_request("users/current", Method::GET, &data).await
+        self.retry_request("users/current", Method::GET, &data)
+            .await
     }
 
     /// Get the currently logged in user
@@ -228,7 +242,8 @@ impl NanoClient {
     ///
     /// If you know of other valid values, please open an issue with the values to add to this list!
     pub async fn pages(&self, page: &str) -> Result<ItemResponse<PageObject>, Error> {
-        self.retry_request(&format!("pages/{}", page), Method::GET, &()).await
+        self.retry_request(&format!("pages/{}", page), Method::GET, &())
+            .await
     }
 
     /// Get the list of notifications for the current user
@@ -239,14 +254,23 @@ impl NanoClient {
     /// Get a set of all the challenges this user has access to (Possibly all they can make
     /// projects in)
     pub async fn available_challenges(&self) -> Result<CollectionResponse<ChallengeObject>, Error> {
-        self.retry_request("challenges/available", Method::GET, &()).await
+        self.retry_request("challenges/available", Method::GET, &())
+            .await
     }
 
     /// Get the daily aggregates for a given ProjectChallenge
     /// ProjectChallenge is the common link between a project and a challenge it was part of,
     /// thus providing info for counts on given days
-    pub async fn daily_aggregates(&self, id: u64) -> Result<CollectionResponse<DailyAggregateObject>, Error> {
-        self.retry_request(&format!("project-challenges/{}/daily-aggregates", id), Method::GET, &()).await
+    pub async fn daily_aggregates(
+        &self,
+        id: u64,
+    ) -> Result<CollectionResponse<DailyAggregateObject>, Error> {
+        self.retry_request(
+            &format!("project-challenges/{}/daily-aggregates", id),
+            Method::GET,
+            &(),
+        )
+        .await
     }
 
     // Type queries
@@ -261,13 +285,16 @@ impl NanoClient {
     ///
     /// **Warning**: Many filter combinations are invalid, and the rules are not currently fully
     /// understood.
-    pub async fn get_all_include_filtered<D: ObjectInfo + DeserializeOwned>(&self, ty: NanoKind, include: &[NanoKind], filter: &[(&str, u64)]) -> Result<CollectionResponse<D>, Error> {
+    pub async fn get_all_include_filtered<D: ObjectInfo + DeserializeOwned>(
+        &self,
+        ty: NanoKind,
+        include: &[NanoKind],
+        filter: &[(&str, u64)],
+    ) -> Result<CollectionResponse<D>, Error> {
         let mut data = Vec::new();
 
         for i in filter {
-            data.push(
-                (format!("filter[{}]", i.0), i.1.to_string())
-            )
+            data.push((format!("filter[{}]", i.0), i.1.to_string()))
         }
 
         add_included(&mut data, include);
@@ -277,50 +304,81 @@ impl NanoClient {
 
     /// Get all accessible items of a specific kind, with filtering to certain related IDs
     /// (See [`Self::get_all_include_filtered`])
-    pub async fn get_all_filtered<D: ObjectInfo + DeserializeOwned>(&self, ty: NanoKind, filter: &[(&str, u64)]) -> Result<CollectionResponse<D>, Error> {
+    pub async fn get_all_filtered<D: ObjectInfo + DeserializeOwned>(
+        &self,
+        ty: NanoKind,
+        filter: &[(&str, u64)],
+    ) -> Result<CollectionResponse<D>, Error> {
         self.get_all_include_filtered(ty, &[], filter).await
     }
 
     /// Get all accessible items of a specific kind, with included linked items
     /// (See [`Self::get_all_include_filtered`])
-    pub async fn get_all_include<D: ObjectInfo + DeserializeOwned>(&self, ty: NanoKind, include: &[NanoKind]) -> Result<CollectionResponse<D>, Error> {
+    pub async fn get_all_include<D: ObjectInfo + DeserializeOwned>(
+        &self,
+        ty: NanoKind,
+        include: &[NanoKind],
+    ) -> Result<CollectionResponse<D>, Error> {
         self.get_all_include_filtered(ty, include, &[]).await
     }
 
     /// Get all accessible items of a specific kind, neither filtering nor including linked items
     /// (See [`Self::get_all_include_filtered`])
-    pub async fn get_all<D: ObjectInfo + DeserializeOwned>(&self, ty: NanoKind) -> Result<CollectionResponse<D>, Error> {
+    pub async fn get_all<D: ObjectInfo + DeserializeOwned>(
+        &self,
+        ty: NanoKind,
+    ) -> Result<CollectionResponse<D>, Error> {
         self.get_all_include_filtered(ty, &[], &[]).await
     }
 
     /// Get an item of a specific type and ID, with included linked items
-    pub async fn get_id_include<D: ObjectInfo + DeserializeOwned>(&self, ty: NanoKind, id: u64, include: &[NanoKind]) -> Result<ItemResponse<D>, Error> {
+    pub async fn get_id_include<D: ObjectInfo + DeserializeOwned>(
+        &self,
+        ty: NanoKind,
+        id: u64,
+        include: &[NanoKind],
+    ) -> Result<ItemResponse<D>, Error> {
         let mut data = Vec::new();
 
         add_included(&mut data, include);
 
-        self.retry_request(&format!("{}/{}", ty.api_name(), id), Method::GET, &data).await
+        self.retry_request(&format!("{}/{}", ty.api_name(), id), Method::GET, &data)
+            .await
     }
 
     /// Get an item of a specific type and ID, with no included items.
     /// (See [`Self::get_id_include`])
-    pub async fn get_id<D: ObjectInfo + DeserializeOwned>(&self, ty: NanoKind, id: u64) -> Result<ItemResponse<D>, Error> {
+    pub async fn get_id<D: ObjectInfo + DeserializeOwned>(
+        &self,
+        ty: NanoKind,
+        id: u64,
+    ) -> Result<ItemResponse<D>, Error> {
         self.get_id_include(ty, id, &[]).await
     }
 
     /// Get an item of a specific type and slug, with included items.
     /// A slug is a unique text identifier for an object, not all types have one.
-    pub async fn get_slug_include<D: ObjectInfo + DeserializeOwned>(&self, ty: NanoKind, slug: &str, include: &[NanoKind]) -> Result<ItemResponse<D>, Error> {
+    pub async fn get_slug_include<D: ObjectInfo + DeserializeOwned>(
+        &self,
+        ty: NanoKind,
+        slug: &str,
+        include: &[NanoKind],
+    ) -> Result<ItemResponse<D>, Error> {
         let mut data = Vec::new();
 
         add_included(&mut data, include);
 
-        self.retry_request(&format!("{}/{}", ty.api_name(), slug), Method::GET, &data).await
+        self.retry_request(&format!("{}/{}", ty.api_name(), slug), Method::GET, &data)
+            .await
     }
 
     /// Get an item of a specific type and slug, with no included items.
     /// A slug is a unique text identifier for an object, not all types have one.
-    pub async fn get_slug<D: ObjectInfo + DeserializeOwned>(&self, ty: NanoKind, slug: &str) -> Result<ItemResponse<D>, Error> {
+    pub async fn get_slug<D: ObjectInfo + DeserializeOwned>(
+        &self,
+        ty: NanoKind,
+        slug: &str,
+    ) -> Result<ItemResponse<D>, Error> {
         self.get_slug_include(ty, slug, &[]).await
     }
 
@@ -347,5 +405,60 @@ impl NanoClient {
         }
 
         self.retry_request(&rel.related, Method::GET, &()).await
+    }
+
+    /// Update wordcount
+    ///
+    /// You'll need to retrieve the current count for the project challenge, compute the
+    /// difference, and call this with it. Alternatively if you've got the session's count you can
+    /// update with that directly.
+    ///
+    /// Returns the saved project session.
+    pub async fn add_project_session(
+        &self,
+        project_id: u64,
+        project_challenge_id: u64,
+        words: i64,
+    ) -> Result<ItemResponse<ProjectSessionObject>, Error> {
+        if !self.is_logged_in().await {
+            return Err(Error::NoCredentials);
+        };
+
+        let data = ItemResponse {
+            data: Object::ProjectSession(ProjectSessionObject {
+                id: 0,
+                links: None,
+                attributes: ProjectSessionData {
+                    count: words,
+                    ..Default::default()
+                },
+                relationships: Some(RelationInfo {
+                    relations: Default::default(),
+                    included: vec![
+                        (
+                            NanoKind::Project,
+                            vec![ObjectRef {
+                                id: project_id,
+                                kind: NanoKind::Project,
+                            }],
+                        ),
+                        (
+                            NanoKind::ProjectChallenge,
+                            vec![ObjectRef {
+                                id: project_challenge_id,
+                                kind: NanoKind::ProjectChallenge,
+                            }],
+                        ),
+                    ]
+                    .into_iter()
+                    .collect(),
+                }),
+            }),
+            included: None,
+            post_info: None,
+        };
+
+        self.retry_request("project-sessions", Method::POST, &data)
+            .await
     }
 }
