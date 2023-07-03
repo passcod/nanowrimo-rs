@@ -9,6 +9,7 @@ use reqwest::{Client, Method, StatusCode};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use tokio::sync::RwLock;
+use tracing::trace;
 
 #[cfg(test)]
 mod tests;
@@ -72,9 +73,11 @@ impl NanoClient {
 
     async fn make_request<T, U>(&self, path: &str, method: Method, data: &T) -> Result<U, Error>
     where
-        T: Serialize + ?Sized,
+        T: Serialize + ?Sized + std::fmt::Debug,
         U: DeserializeOwned + std::fmt::Debug,
     {
+        trace!(?path, "preparing request to nanowrimo.org");
+
         let mut query = None;
         let mut json = None;
 
@@ -92,11 +95,13 @@ impl NanoClient {
         }
 
         if let Some(query) = query {
+            trace!(?query, "query request to nanowrimo.org");
             req = req.query(query);
         }
 
         if let Some(json) = json {
-            req = req.json(json)
+            trace!(?json, "json request to nanowrimo.org");
+            req = req.json(json);
         }
 
         let resp = req.send().await?;
@@ -117,6 +122,7 @@ impl NanoClient {
         }
 
         let nano_resp = resp.json().await?;
+        trace!(?nano_resp, "response from nanowrimo.org");
 
         match nano_resp {
             NanoResponse::Success(val) => Ok(val),
@@ -130,7 +136,7 @@ impl NanoClient {
 
     async fn retry_request<T, U>(&self, path: &str, method: Method, data: &T) -> Result<U, Error>
     where
-        T: Serialize + ?Sized,
+        T: Serialize + ?Sized + std::fmt::Debug,
         U: DeserializeOwned + std::fmt::Debug,
     {
         let res = self.make_request(path, method.clone(), data).await;
