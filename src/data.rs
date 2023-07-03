@@ -796,7 +796,7 @@ pub struct ProjectChallengeData {
     pub unit_type: UnitType,
     pub user_id: u64,
     pub when: Option<u64>, // TODO: ???
-    pub won_at: Option<NaiveDate>,
+    pub won_at: Option<DateTime<Utc>>,
     pub writing_location: Option<String>, // TODO: ???
     pub writing_type: Option<WritingType>,
 }
@@ -810,7 +810,7 @@ pub struct UserBadgeData {
     pub user_id: u64,
 }
 
-// This doesn't like deny_unknown_fields, I think due to the custom serialize/deserialize impls
+// This doesn't like deny_unknown_fields, due to flatten
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct RelationInfo {
     /// If this is Some, all references are included in the response Include array
