@@ -47,12 +47,12 @@ impl TryFrom<&str> for ProjectStatus {
     type Error = &'static str;
 
     fn try_from(val: &str) -> Result<ProjectStatus, Self::Error> {
-        match val {
-            "Prepping" => Ok(ProjectStatus::Prepping),
-            "In Progress" => Ok(ProjectStatus::InProgress),
-            "Drafted" => Ok(ProjectStatus::Drafted),
-            "Completed" => Ok(ProjectStatus::Completed),
-            "Published" => Ok(ProjectStatus::Published),
+        match val.to_ascii_lowercase().as_str() {
+            "prepping" => Ok(ProjectStatus::Prepping),
+            "in progress" => Ok(ProjectStatus::InProgress),
+            "drafted" => Ok(ProjectStatus::Drafted),
+            "completed" => Ok(ProjectStatus::Completed),
+            "published" => Ok(ProjectStatus::Published),
             _ => Err("Cannot convert &str into ProjectStatus"),
         }
     }
@@ -115,7 +115,7 @@ impl TryFrom<&str> for GroupType {
     type Error = &'static str;
 
     fn try_from(val: &str) -> Result<GroupType, Self::Error> {
-        match val {
+        match val.to_ascii_lowercase().as_str() {
             "everyone" => Ok(GroupType::Everyone),
             "region" => Ok(GroupType::Region),
             "buddies" => Ok(GroupType::Buddies),
@@ -152,7 +152,7 @@ impl TryFrom<&str> for EntryMethod {
     type Error = &'static str;
 
     fn try_from(val: &str) -> Result<EntryMethod, Self::Error> {
-        match val {
+        match val.to_ascii_lowercase().as_str() {
             "join" => Ok(EntryMethod::Join),
             "creator" => Ok(EntryMethod::Creator),
             "create" => Ok(EntryMethod::Create),
@@ -368,10 +368,10 @@ impl TryFrom<&str> for RegistrationPath {
     type Error = &'static str;
 
     fn try_from(val: &str) -> Result<RegistrationPath, Self::Error> {
-        match val {
+        match val.to_ascii_lowercase().as_str() {
             "email" => Ok(RegistrationPath::Email),
-            "Facebook" => Ok(RegistrationPath::Facebook),
-            "Google" => Ok(RegistrationPath::Google),
+            "facebook" => Ok(RegistrationPath::Facebook),
+            "google" => Ok(RegistrationPath::Google),
             _ => Err("Cannot convert &str into RegistrationPath"),
         }
     }
@@ -399,7 +399,7 @@ impl TryFrom<&str> for BadgeType {
     type Error = &'static str;
 
     fn try_from(val: &str) -> Result<BadgeType, Self::Error> {
-        match val {
+        match val.to_ascii_lowercase().as_str() {
             "word count" => Ok(BadgeType::WordCount),
             "self-awarded" => Ok(BadgeType::SelfAwarded),
             "participation" => Ok(BadgeType::Participation),
