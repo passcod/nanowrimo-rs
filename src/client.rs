@@ -9,7 +9,7 @@ use reqwest::{Client, Method, StatusCode};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use tokio::sync::RwLock;
-use tracing::trace;
+use tracing::{error, trace};
 
 #[cfg(test)]
 mod tests;
@@ -126,26 +126,31 @@ impl NanoClient {
             _ => (),
         }
 
-        let nano_resp = resp.bytes().await?;
+        let nano_resp = resp.text().await?;
         trace!(?nano_resp, "response from nanowrimo.org");
-        let jd = &mut serde_json::Deserializer::from_slice(&nano_resp);
+
+        let nano_val: serde_json::Value = serde_json::from_str(&nano_resp).unwrap_or_default();
+        if nano_val.as_object().map_or(false, |obj| {
+            obj.contains_key("error") || obj.contains_key("errors")
+        }) {
+            // parse the error(s)
+            let nano_error: NanoError = serde_json::from_value(nano_val)?;
+            return match nano_error {
+                NanoError::SimpleError { error } => Err(Error::SimpleNanoError(status, error)),
+                NanoError::ErrorList { errors } => Err(Error::NanoErrors(errors)),
+            };
+        }
+
+        let jd = &mut serde_json::Deserializer::from_str(&nano_resp);
         let nano_resp = serde_path_to_error::deserialize(jd).map_err(|err| {
-            trace!(?err, "error parsing nanowrimo.org response as json");
-            Error::BadJSON {
-                path: err.path().to_string(),
-                err: err.into_inner(),
-                val: serde_json::from_slice(&nano_resp).unwrap_or_default(),
-            }
+            let path = err.path().to_string();
+            let err = err.into_inner();
+            error!(%path, %err, raw=%nano_val, "error parsing nanowrimo.org response as json");
+            Error::ResponseDecoding { path, err }
         })?;
         trace!(?nano_resp, "response from nanowrimo.org");
 
-        match nano_resp {
-            NanoResponse::Success(val) => Ok(val),
-            NanoResponse::Error(err) => match err {
-                NanoError::SimpleError { error } => Err(Error::SimpleNanoError(status, error)),
-                NanoError::ErrorList { errors } => Err(Error::NanoErrors(errors)),
-            },
-        }
+        Ok(nano_resp)
     }
 
     async fn retry_request<T, U>(&self, path: &str, method: Method, data: &T) -> Result<U, Error>

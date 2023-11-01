@@ -9,11 +9,12 @@ use reqwest::StatusCode;
 pub enum Error {
     /// Tried to login but in guest mode
     NoCredentials,
-    /// Valid JSON but can't parse it
-    BadJSON {
+    /// Bad JSON
+    BadJSON(serde_json::Error),
+    /// Valid JSON but can't understand it
+    ResponseDecoding {
         path: String,
         err: serde_json::Error,
-        val: serde_json::Value,
     },
     /// An error induced by a failed reqwest
     ReqwestError(reqwest::Error),
@@ -27,8 +28,9 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::NoCredentials => write!(f, "No credentials available"),
-            Error::BadJSON { path, err, val } => {
-                write!(f, "Error decoding JSON, at {path}: {err}\nOriginal: {val}")
+            Error::BadJSON(err) => write!(f, "JSON Error: {err}"),
+            Error::ResponseDecoding { path, err } => {
+                write!(f, "Error decoding response, at {path}: {err}")
             }
             Error::ReqwestError(err) => write!(f, "Reqwest Error: {err}"),
             Error::SimpleNanoError(code, message) => write!(
@@ -62,5 +64,11 @@ impl error::Error for Error {
 impl From<reqwest::Error> for Error {
     fn from(err: reqwest::Error) -> Error {
         Error::ReqwestError(err)
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(err: serde_json::Error) -> Error {
+        Error::BadJSON(err)
     }
 }

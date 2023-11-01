@@ -9,17 +9,9 @@ use std::collections::HashMap;
 
 use chrono::{DateTime, NaiveDate, Utc};
 use paste::paste;
-use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
 // TODO: May be possible to make time_zone a type from chrono
-
-#[derive(Clone, Serialize, Deserialize, Debug)]
-#[serde(untagged, bound(deserialize = "T: DeserializeOwned"))]
-pub(crate) enum NanoResponse<T: DeserializeOwned> {
-    Success(T),
-    Error(NanoError),
-}
 
 /// The response of the Nano API when a command results in an expected error
 #[derive(Clone, Serialize, Deserialize, Debug)]
