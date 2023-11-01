@@ -579,17 +579,17 @@ impl Into<u8> for Where {
 }
 
 #[derive(Deserialize, Serialize, PartialEq, Eq, Debug, Copy, Clone)]
-#[serde(from = "u8", into = "u8")]
+#[serde(from = "u64", into = "u64")]
 pub enum How {
     ByHand,
     Typewriter,
     Laptop,
     Phone,
-    Other(u8),
+    Other(u64),
 }
 
-impl From<u8> for How {
-    fn from(val: u8) -> How {
+impl From<u64> for How {
+    fn from(val: u64) -> How {
         match val {
             0 => How::ByHand,
             1 => How::Typewriter,
@@ -600,8 +600,8 @@ impl From<u8> for How {
     }
 }
 
-impl Into<u8> for How {
-    fn into(self) -> u8 {
+impl Into<u64> for How {
+    fn into(self) -> u64 {
         match self {
             How::ByHand => 0,
             How::Typewriter => 1,
