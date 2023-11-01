@@ -38,16 +38,13 @@ impl fmt::Display for Error {
                 "NanoWrimo API Error: {message} (status code {})",
                 code.as_u16()
             ),
-            Error::NanoErrors(errs) => errs
-                .iter()
-                .map(|err| {
-                    write!(
-                        f,
-                        "{} ({}): {} (status code {})",
-                        err.title, err.code, err.detail, err.status
-                    )
-                })
-                .collect::<Result<_, _>>(),
+            Error::NanoErrors(errs) => errs.iter().try_for_each(|err| {
+                write!(
+                    f,
+                    "{} ({}): {} (status code {})",
+                    err.title, err.code, err.detail, err.status
+                )
+            }),
         }
     }
 }

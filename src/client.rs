@@ -88,7 +88,7 @@ impl NanoClient {
 
         let mut req = self
             .client
-            .request(method, &format!("{}{}", NanoClient::BASE_URL, path));
+            .request(method, format!("{}{}", NanoClient::BASE_URL, path));
 
         if let Some(token) = self.token.read().await.as_deref() {
             req = req.header("Authorization", token)
@@ -414,7 +414,7 @@ impl NanoClient {
     /// way Nano handle them on its end, if you know ahead of time that you will need the relations,
     /// it's better to use [`Self::get_id_include`] or [`Self::get_all_include`]
     pub async fn get_all_related(&self, rel: &RelationLink) -> Result<CollectionResponse, Error> {
-        if !rel.related.ends_with("s") {
+        if !rel.related.ends_with('s') {
             panic!("get_all_related can only get many-relation links")
         }
 
@@ -425,7 +425,7 @@ impl NanoClient {
     /// specific type that are related to it. Single relations tend to not have the same pitfalls as
     /// multiple relations, so this is less dangerous than [`Self::get_all_related`]
     pub async fn get_unique_related(&self, rel: &RelationLink) -> Result<ItemResponse, Error> {
-        if rel.related.ends_with("s") {
+        if rel.related.ends_with('s') {
             panic!("get_unique_related can only get single-relation links")
         }
 

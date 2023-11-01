@@ -23,9 +23,9 @@ impl TryFrom<u8> for PrivacySetting {
     }
 }
 
-impl Into<u8> for PrivacySetting {
-    fn into(self) -> u8 {
-        match self {
+impl From<PrivacySetting> for u8 {
+    fn from(val: PrivacySetting) -> Self {
+        match val {
             PrivacySetting::Private => 0,
             PrivacySetting::Buddies => 1,
             PrivacySetting::Anyone => 2,
@@ -58,9 +58,9 @@ impl TryFrom<&str> for ProjectStatus {
     }
 }
 
-impl Into<&'static str> for ProjectStatus {
-    fn into(self) -> &'static str {
-        match self {
+impl From<ProjectStatus> for &'static str {
+    fn from(val: ProjectStatus) -> Self {
+        match val {
             ProjectStatus::Prepping => "Prepping",
             ProjectStatus::InProgress => "In Progress",
             ProjectStatus::Drafted => "Drafted",
@@ -91,9 +91,9 @@ impl TryFrom<u8> for EventType {
     }
 }
 
-impl Into<u8> for EventType {
-    fn into(self) -> u8 {
-        match self {
+impl From<EventType> for u8 {
+    fn from(val: EventType) -> Self {
+        match val {
             EventType::NanoWrimo => 0,
             EventType::CampNano => 1,
             EventType::Custom => 2,
@@ -126,9 +126,9 @@ impl TryFrom<&str> for GroupType {
     }
 }
 
-impl Into<&'static str> for GroupType {
-    fn into(self) -> &'static str {
-        match self {
+impl From<GroupType> for &'static str {
+    fn from(val: GroupType) -> Self {
+        match val {
             GroupType::Everyone => "everyone",
             GroupType::Region => "region",
             GroupType::Buddies => "buddies",
@@ -163,9 +163,9 @@ impl TryFrom<&str> for EntryMethod {
     }
 }
 
-impl Into<&'static str> for EntryMethod {
-    fn into(self) -> &'static str {
-        match self {
+impl From<EntryMethod> for &'static str {
+    fn from(val: EntryMethod) -> Self {
+        match val {
             EntryMethod::Join => "join",
             EntryMethod::Creator => "creator",
             EntryMethod::Create => "create",
@@ -194,9 +194,9 @@ impl TryFrom<u8> for AdminLevel {
     }
 }
 
-impl Into<u8> for AdminLevel {
-    fn into(self) -> u8 {
-        match self {
+impl From<AdminLevel> for u8 {
+    fn from(val: AdminLevel) -> Self {
+        match val {
             AdminLevel::User => 0,
             AdminLevel::Admin => 1,
         }
@@ -226,9 +226,9 @@ impl TryFrom<&str> for ActionType {
     }
 }
 
-impl Into<&'static str> for ActionType {
-    fn into(self) -> &'static str {
-        match self {
+impl From<ActionType> for &'static str {
+    fn from(val: ActionType) -> Self {
+        match val {
             ActionType::BadgeAwarded => "BADGE_AWARDED",
             ActionType::BuddiesPage => "BUDDIES_PAGE",
             ActionType::NanoMessages => "NANOMESSAGES",
@@ -257,9 +257,9 @@ impl TryFrom<u8> for DisplayStatus {
     }
 }
 
-impl Into<u8> for DisplayStatus {
-    fn into(self) -> u8 {
-        match self {
+impl From<DisplayStatus> for u8 {
+    fn from(val: DisplayStatus) -> Self {
+        match val {
             DisplayStatus::AllNotifs => 0,
             DisplayStatus::RecentNotifs => 1,
         }
@@ -296,9 +296,9 @@ impl TryFrom<u8> for WritingType {
     }
 }
 
-impl Into<u8> for WritingType {
-    fn into(self) -> u8 {
-        match self {
+impl From<WritingType> for u8 {
+    fn from(val: WritingType) -> Self {
+        match val {
             WritingType::Novel => 0,
             WritingType::ShortStories => 1,
             WritingType::Memoir => 2,
@@ -341,9 +341,9 @@ impl TryFrom<&str> for ContentType {
     }
 }
 
-impl Into<&'static str> for ContentType {
-    fn into(self) -> &'static str {
-        match self {
+impl From<ContentType> for &'static str {
+    fn from(val: ContentType) -> Self {
+        match val {
             ContentType::GeneralContent => "General content",
             ContentType::StackedContent => "Stacked Content",
             ContentType::Plate => "Plate",
@@ -377,9 +377,9 @@ impl TryFrom<&str> for RegistrationPath {
     }
 }
 
-impl Into<&'static str> for RegistrationPath {
-    fn into(self) -> &'static str {
-        match self {
+impl From<RegistrationPath> for &'static str {
+    fn from(val: RegistrationPath) -> Self {
+        match val {
             RegistrationPath::Email => "email",
             RegistrationPath::Facebook => "Facebook",
             RegistrationPath::Google => "Google",
@@ -408,9 +408,9 @@ impl TryFrom<&str> for BadgeType {
     }
 }
 
-impl Into<&'static str> for BadgeType {
-    fn into(self) -> &'static str {
-        match self {
+impl From<BadgeType> for &'static str {
+    fn from(val: BadgeType) -> Self {
+        match val {
             BadgeType::WordCount => "word count",
             BadgeType::SelfAwarded => "self-awarded",
             BadgeType::Participation => "participation",
@@ -437,9 +437,9 @@ impl TryFrom<u8> for JoiningRule {
     }
 }
 
-impl Into<u8> for JoiningRule {
-    fn into(self) -> u8 {
-        match self {
+impl From<JoiningRule> for u8 {
+    fn from(val: JoiningRule) -> Self {
+        match val {
             JoiningRule::AdminOnly => 0,
             JoiningRule::AnyUser => 1,
         }
@@ -466,9 +466,9 @@ impl TryFrom<u8> for UnitType {
     }
 }
 
-impl Into<u8> for UnitType {
-    fn into(self) -> u8 {
-        match self {
+impl From<UnitType> for u8 {
+    fn from(val: UnitType) -> Self {
+        match val {
             UnitType::Words => 0,
             UnitType::Hours => 1,
         }
@@ -497,9 +497,9 @@ impl TryFrom<&str> for AdheresTo {
     }
 }
 
-impl Into<&'static str> for AdheresTo {
-    fn into(self) -> &'static str {
-        match self {
+impl From<AdheresTo> for &'static str {
+    fn from(val: AdheresTo) -> Self {
+        match val {
             AdheresTo::Unknown => "",
             AdheresTo::User => "user",
             AdheresTo::ProjectChallenge => "project_challenge",
@@ -532,9 +532,9 @@ impl TryFrom<u8> for Feeling {
     }
 }
 
-impl Into<u8> for Feeling {
-    fn into(self) -> u8 {
-        match self {
+impl From<Feeling> for u8 {
+    fn from(val: Feeling) -> Self {
+        match val {
             Feeling::Upset => 1,
             Feeling::Stressed => 2,
             Feeling::Okay => 3,
@@ -633,9 +633,9 @@ impl TryFrom<i8> for InvitationStatus {
     }
 }
 
-impl Into<i8> for InvitationStatus {
-    fn into(self) -> i8 {
-        match self {
+impl From<InvitationStatus> for i8 {
+    fn from(val: InvitationStatus) -> Self {
+        match val {
             InvitationStatus::Blocked => -2,
             InvitationStatus::Sent => 0,
             InvitationStatus::Accepted => 1,
