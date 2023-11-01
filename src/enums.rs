@@ -49,7 +49,7 @@ impl TryFrom<&str> for ProjectStatus {
     fn try_from(val: &str) -> Result<ProjectStatus, Self::Error> {
         match val.to_ascii_lowercase().as_str() {
             "prepping" => Ok(ProjectStatus::Prepping),
-            "in progress" => Ok(ProjectStatus::InProgress),
+            "in progress" | "inprogress" => Ok(ProjectStatus::InProgress),
             "drafted" => Ok(ProjectStatus::Drafted),
             "completed" => Ok(ProjectStatus::Completed),
             "published" => Ok(ProjectStatus::Published),

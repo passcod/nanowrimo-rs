@@ -12,7 +12,6 @@ use paste::paste;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
-// TODO: A lot of these shouldn't be pub, constructing them yourself is dangerous
 // TODO: May be possible to make time_zone a type from chrono
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -20,7 +19,6 @@ use serde::{Deserialize, Serialize};
 pub(crate) enum NanoResponse<T: DeserializeOwned> {
     Success(T),
     Error(NanoError),
-    Unknown(serde_json::Value),
 }
 
 /// The response of the Nano API when a command results in an expected error

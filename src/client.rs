@@ -126,7 +126,17 @@ impl NanoClient {
             _ => (),
         }
 
-        let nano_resp = resp.json().await?;
+        let nano_resp = resp.bytes().await?;
+        trace!(?nano_resp, "response from nanowrimo.org");
+        let jd = &mut serde_json::Deserializer::from_slice(&nano_resp);
+        let nano_resp = serde_path_to_error::deserialize(jd).map_err(|err| {
+            trace!(?err, "error parsing nanowrimo.org response as json");
+            Error::BadJSON {
+                path: err.path().to_string(),
+                err: err.into_inner(),
+                val: serde_json::from_slice(&nano_resp).unwrap_or_default(),
+            }
+        })?;
         trace!(?nano_resp, "response from nanowrimo.org");
 
         match nano_resp {
@@ -135,7 +145,6 @@ impl NanoClient {
                 NanoError::SimpleError { error } => Err(Error::SimpleNanoError(status, error)),
                 NanoError::ErrorList { errors } => Err(Error::NanoErrors(errors)),
             },
-            NanoResponse::Unknown(val) => Err(Error::BadJSON(val)),
         }
     }
 
